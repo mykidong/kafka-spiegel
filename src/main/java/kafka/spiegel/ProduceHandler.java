@@ -3,14 +3,16 @@ package kafka.spiegel;
 import com.lmax.disruptor.EventHandler;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -84,7 +86,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
 
     @Override
     public void flushAndCommit() {
-        synchronized (lock) {
+        synchronized (this.consumer) {
             try {
                 if(this.count.get() > 0) {
                     // send messages.
@@ -96,7 +98,6 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     this.producer.flush();
 
                     // commit offsets.
-                    // TODO: concurrent access problem!!!
                     this.consumer.commitSync(this.partitionOffsetMap);
 
                     // reset events list.
@@ -108,7 +109,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     // reset message count.
                     this.count.set(0);
 
-                    log.info("messages flushed to destination kafka and offset commited to source kafka...");
+                    //log.info("messages flushed to destination kafka and offset commited to source kafka...");
                 }
 
             }catch (Exception e)

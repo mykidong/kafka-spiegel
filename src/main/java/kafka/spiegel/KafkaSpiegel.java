@@ -68,6 +68,8 @@ public class KafkaSpiegel {
 
     private boolean wakeupCalled = false;
 
+    private final Object lock = new Object();
+
     public KafkaSpiegel(Properties consumerProps, Properties producerProps, List<String> topics, Map<String, String> spiegelProps) {
         this.consumerProps = consumerProps;
 
@@ -112,7 +114,9 @@ public class KafkaSpiegel {
 
     public void run() {
         try {
-            this.consumer.subscribe(this.topics, new PartitionBalancer(this.produceHandler));
+            synchronized (this.consumer) {
+                this.consumer.subscribe(this.topics, new PartitionBalancer(this.produceHandler));
+            }
 
             while (true) {
                 // if wakeupCalled flag set to true, throw WakeupException to exit, before that flushing message by producer
@@ -121,7 +125,11 @@ public class KafkaSpiegel {
                     throw new WakeupException();
                 }
 
-                ConsumerRecords<byte[], byte[]> records = consumer.poll(this.timeout);
+                ConsumerRecords<byte[], byte[]> records = null;
+
+                synchronized (this.consumer) {
+                    records = consumer.poll(this.timeout);
+                }
 
                 for (ConsumerRecord<byte[], byte[]> record : records) {
                     String topic = record.topic();
