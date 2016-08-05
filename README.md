@@ -36,35 +36,44 @@ producer.flush.interval.in.mills=1000
 producer.flush.max.event.size=1000
 ```
 
+Kafka Spiel can be run like this:
+```
+java kafka.spiegel.KafkaSpiegelMain --consumer.props props/sourceConsumer.properties \
+                                    --producer.props props/destProducer.properties \
+                                    --topics item-view-event \
+                                    --spiegel.props props/spiegel.properties
+```
+
+
 ## Run Demo
 The following shows data movement from source kafka cluster to destination kafka cluster.
 
-## run source kafka broker.
+## Run source kafka broker.
 As source kafka cluster, run source kafka broker:
 ```
 mvn -e -Dtest=RunLocalKafka -DbrokerPath=kafkaPropLocal.properties -DzkPath=zkPropLocal.properties test;
 ```
 
-## run destination kafka broker.
+## Run destination kafka broker.
 As destination kafka cluster, run destination kafka broker:
 ```
 mvn -e -Dtest=RunLocalKafka -DbrokerPath=kafkaPropLocal2.properties -DzkPath=zkPropLocal2.properties test;
 ```
 
-## run kafka spiegel.
+## Run kafka spiegel.
 Run kafka spiegel which runs kafka consumer connected to source kafka cluster and kafka producer connected to destination kafka cluster:
 ```
 mvn -e -Dtest=KafkaSpiegelTestSkip test;
 ```
 
-## run test producer to send message to source kafka broker.
+## Run test producer to send message to source kafka broker.
 This is test data producer to send messages to source kafka broker.
 ```
 mvn -e -Dtest=GenericRecordKafkaProducer test;
 ```
 
 
-## run test consumer to print messages consumed from destination kafka broker.
+## Run test consumer to print messages consumed from destination kafka broker.
 To print the messages from the destination kafka broker, run the following test case:
 ```
 mvn -e -Dtest=KafkaSpiegelConsumer test;
