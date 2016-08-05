@@ -36,7 +36,7 @@ producer.flush.interval.in.mills=1000
 producer.flush.max.event.size=1000
 ```
 
-Kafka Spiel can be run like this:
+Kafka Spiegel can be run like this:
 ```
 java kafka.spiegel.KafkaSpiegelMain --consumer.props props/sourceConsumer.properties \
                                     --producer.props props/destProducer.properties \
