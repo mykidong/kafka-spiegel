@@ -1,12 +1,9 @@
 package kafka.spiegel;
 
 import com.lmax.disruptor.dsl.Disruptor;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.TopicPartition;
@@ -14,9 +11,9 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by mykidong on 2016-08-05.
@@ -60,7 +57,6 @@ public class KafkaSpiegel {
     private List<String> topics;
     private Map<String, String> spiegelProps;
     private long timeout;
-    private Map<TopicPartition, OffsetAndMetadata> latestTpMap;
     private long interval;
     private long maxEventSize;
 
@@ -71,9 +67,6 @@ public class KafkaSpiegel {
     private SpiegelEventTranslator spiegelEventTranslator;
 
     private boolean wakeupCalled = false;
-
-    private KafkaSpiegel() {}
-
 
     public KafkaSpiegel(Properties consumerProps, Properties producerProps, List<String> topics, Map<String, String> spiegelProps) {
         this.consumerProps = consumerProps;
@@ -138,8 +131,6 @@ public class KafkaSpiegel {
 
                     TopicPartition tp = new TopicPartition(topic, partition);
 
-                    latestTpMap.put(tp, new OffsetAndMetadata(offset));
-
                     // set props to translator.
                     this.spiegelEventTranslator.setTopic(topic);
                     this.spiegelEventTranslator.setPartition(partition);
@@ -156,81 +147,6 @@ public class KafkaSpiegel {
             this.produceHandler.flushAndCommit();
 
             this.consumer.close();
-        }
-    }
-
-
-    public static void main(String[] args) {
-
-        OptionParser parser = new OptionParser();
-        OptionSet options = parser.parse(args);
-
-        // consumer properties path in classpath.
-        String consumerPropPath = options.valueOf(parser.accepts("consumer.props").withRequiredArg().ofType(String.class));
-        Properties consumerProps = loadProperties(consumerPropPath);
-
-        // producer properites path in classpath.
-        String producerPropPath = options.valueOf(parser.accepts("producer.props").withRequiredArg().ofType(String.class));
-        Properties producerProps = loadProperties(producerPropPath);
-
-        // topics which are comma seperated.
-        String topicLine = options.valueOf(parser.accepts("topics").withRequiredArg().ofType(String.class));
-        List<String> topics = Arrays.asList(topicLine.split(","));
-
-        // kafka spiegel properties path in classpath.
-        String spiegelPropPath = options.valueOf(parser.accepts("spiegel.props").withRequiredArg().ofType(String.class));
-        Properties spiegelPropsTemp = loadProperties(spiegelPropPath);
-
-        Map<String, String> spiegelProps = new HashMap<>();
-        for(Object key : spiegelPropsTemp.keySet())
-        {
-            spiegelProps.put((String) key, (String)spiegelPropsTemp.get(key));
-        }
-
-        Thread mainThread = Thread.currentThread();
-
-        KafkaSpiegel kafkaSpiegel = new KafkaSpiegel(consumerProps, producerProps, topics, spiegelProps);
-        kafkaSpiegel.run();
-
-        // register Message as shutdown hook
-        Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(kafkaSpiegel, mainThread));
-    }
-
-    private static Properties loadProperties(String path) {
-        final Properties properties = new Properties();
-
-        final InputStream stream = new KafkaSpiegel().getClass().getResourceAsStream(path);
-        try {
-            properties.load(stream);
-
-            return properties;
-        }catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private static class ShutdownHookThread extends Thread {
-        private KafkaSpiegel kafkaSpiegel;
-
-        private Thread mainThread;
-
-        public ShutdownHookThread(KafkaSpiegel kafkaSpiegel, Thread mainThread) {
-            this.kafkaSpiegel = kafkaSpiegel;
-            this.mainThread = mainThread;
-        }
-
-        public void run() {
-            this.kafkaSpiegel.getConsumer().wakeup();
-
-            // to make sure that WakeupException should be thrown before exit.
-            this.kafkaSpiegel.setWakeupCalled(true);
-            try {
-                mainThread.join();
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
         }
     }
 }

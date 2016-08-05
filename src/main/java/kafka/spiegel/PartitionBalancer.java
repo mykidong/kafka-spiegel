@@ -24,7 +24,6 @@ public class PartitionBalancer implements ConsumerRebalanceListener{
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> collection) {
         this.produceController.flushAndCommit();
-        log.info("messages flushed and offset commited...");
     }
 
     @Override

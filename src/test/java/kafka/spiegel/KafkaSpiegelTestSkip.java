@@ -29,7 +29,7 @@ public class KafkaSpiegelTestSkip {
 
 
     @Test
-    public void run()
+    public void run() throws Exception
     {
         List<String> argsList = new ArrayList<>();
         argsList.add("--consumer.props");
@@ -46,6 +46,6 @@ public class KafkaSpiegelTestSkip {
 
         String[] args = argsList.toArray(new String[0]);
 
-        KafkaSpiegel.main(args);
+        KafkaSpiegelMain.main(args);
     }
 }

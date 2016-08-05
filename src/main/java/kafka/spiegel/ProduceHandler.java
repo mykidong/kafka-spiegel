@@ -3,16 +3,14 @@ package kafka.spiegel;
 import com.lmax.disruptor.EventHandler;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -88,25 +86,30 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
     public void flushAndCommit() {
         synchronized (lock) {
             try {
-                // send messages.
-                for (SpiegelEvent event : events) {
-                    this.producer.send(new ProducerRecord<byte[], byte[]>(event.getTopic(), event.getValue())).get();
+                if(this.count.get() > 0) {
+                    // send messages.
+                    for (SpiegelEvent event : events) {
+                        this.producer.send(new ProducerRecord<byte[], byte[]>(event.getTopic(), event.getValue())).get();
+                    }
+
+                    // producer flush.
+                    this.producer.flush();
+
+                    // commit offsets.
+                    // TODO: concurrent access problem!!!
+                    this.consumer.commitSync(this.partitionOffsetMap);
+
+                    // reset events list.
+                    this.events = new ArrayList<>();
+
+                    // reset partition offset map.
+                    this.partitionOffsetMap = new ConcurrentHashMap<>();
+
+                    // reset message count.
+                    this.count.set(0);
+
+
                 }
-
-                // producer flush.
-                this.producer.flush();
-
-                // commit offsets.
-                this.consumer.commitSync(this.partitionOffsetMap);
-
-                // reset events list.
-                this.events = new ArrayList<>();
-
-                // reset partition offset map.
-                this.partitionOffsetMap = new ConcurrentHashMap<>();
-
-                // reset message count.
-                this.count.set(0);
 
             }catch (Exception e)
             {
