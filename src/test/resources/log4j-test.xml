@@ -10,7 +10,7 @@
 	</appender>
 
 	<appender name="dailyRollingFileAppender" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="/tmp/kafka-etl-logs/kafka-etl-consumer.log" />
+		<param name="File" value="/tmp/kafka-spiegel-logs/kafka-spiegel.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 		<param name="Encoding" value="UTF-8" />
 		<param name="MaxBackupIndex" value="5"/>

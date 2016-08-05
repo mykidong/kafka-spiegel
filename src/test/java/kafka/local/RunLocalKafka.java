@@ -31,8 +31,12 @@ public class RunLocalKafka {
 
     @Test
     public void startKafka() throws Exception {
-        Properties kafkaProperties = this.getProperties("kafkaPropLocal.properties");
-        Properties zkProperties = this.getProperties("zkPropLocal.properties");
+
+        String brokerPath = System.getProperty("brokerPath", "kafkaPropLocal.properties");
+        String zkPath = System.getProperty("zkPath", "zkPropLocal.properties");
+
+        Properties kafkaProperties = this.getProperties(brokerPath);
+        Properties zkProperties = this.getProperties(zkPath);
 
         // delete kafka, zookeeper data directories.
         String kafkaDataPath = kafkaProperties.getProperty("log.dir");
