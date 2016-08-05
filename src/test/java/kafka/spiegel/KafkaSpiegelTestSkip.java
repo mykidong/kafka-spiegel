@@ -46,6 +46,11 @@ public class KafkaSpiegelTestSkip {
 
         String[] args = argsList.toArray(new String[0]);
 
+        // java kafka.spiegel.KafkaSpiegelMain --consumer.props props/sourceConsumer.properties \
+        //                                     --producer.props props/destProducer.properties \
+        //                                     --topics item-view-event \
+        //                                     --spiegel.props props/spiegel.properties
+
         KafkaSpiegelMain.main(args);
     }
 }

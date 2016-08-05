@@ -4,10 +4,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
-import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -30,8 +27,6 @@ public class KafkaSpiegelMain {
 
         // consumer properties path in classpath.
         String consumerPropPath = (String) options.valueOf("consumer.props");
-        log.info("consumerPropPath: [{}]", consumerPropPath);
-
         Properties consumerProps = loadProperties(consumerPropPath);
 
         // producer properites path in classpath.
@@ -64,11 +59,21 @@ public class KafkaSpiegelMain {
 
     private static Properties loadProperties(String propPath) throws Exception
     {
-        PropertiesFactoryBean propBean = new PropertiesFactoryBean();
-        propBean.setLocation(new ClassPathResource(propPath));
-        propBean.afterPropertiesSet();
+        if(!propPath.startsWith("/"))
+        {
+            propPath = "/" + propPath;
+        }
 
-        return  propBean.getObject();
+        InputStream is = null;
+        try {
+            Properties prop = new Properties();
+            is = new KafkaSpiegelMain().getClass().getResourceAsStream(propPath);
+            prop.load(is);
+
+            return prop;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
