@@ -108,7 +108,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     // reset message count.
                     this.count.set(0);
 
-
+                    log.info("messages flushed to destination kafka and offset commited to source kafka...");
                 }
 
             }catch (Exception e)

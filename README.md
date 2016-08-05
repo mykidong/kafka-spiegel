@@ -16,4 +16,4 @@ mvn -e -Dtest=KafkaSpiegelTestSkip test;
 mvn -e -Dtest=GenericRecordKafkaProducer test;
 
 ## run test consumer to print messages consumed from destination kafka broker.
-TODO:...
+mvn -e -Dtest=KafkaSpiegelConsumer test;
