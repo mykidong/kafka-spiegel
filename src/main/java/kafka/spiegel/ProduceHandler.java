@@ -16,6 +16,8 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by mykidong on 2016-08-05.
@@ -30,7 +32,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
     private long interval;
     private long maxEventSize;
 
-    private final Object lock = new Object();
+    private final Lock lock = new ReentrantLock();
 
     private KafkaConsumer<byte[], byte[]> consumer;
     private Producer<byte[], byte[]> producer;
@@ -53,8 +55,10 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
 
     @Override
     public void onEvent(SpiegelEvent spiegelEvent, long l, boolean b) throws Exception {
-        synchronized (lock)
+        try
         {
+            lock.lock();
+
             String topic = spiegelEvent.getTopic();
             int partition = spiegelEvent.getPartition();
             long offset = spiegelEvent.getOffset();
@@ -81,12 +85,16 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
             if (currentTotalCount >= this.maxEventSize) {
                 this.flushAndCommit();
             }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void flushAndCommit() {
-        synchronized (this.consumer) {
+        try {
+            lock.lock();
+
             try {
                 if(this.count.get() > 0) {
                     // send messages.
@@ -116,6 +124,8 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
             {
                 throw new RuntimeException(e);
             }
+        } finally {
+            lock.unlock();
         }
     }
 
