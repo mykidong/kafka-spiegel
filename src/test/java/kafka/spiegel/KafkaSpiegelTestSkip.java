@@ -31,6 +31,8 @@ public class KafkaSpiegelTestSkip {
     @Test
     public void run() throws Exception
     {
+        String topics = System.getProperty("topics", "item-view-event");
+
         List<String> argsList = new ArrayList<>();
         argsList.add("--consumer.props");
         argsList.add("props/sourceConsumer.properties");
@@ -39,7 +41,7 @@ public class KafkaSpiegelTestSkip {
         argsList.add("props/destProducer.properties");
 
         argsList.add("--topics");
-        argsList.add("item-view-event");
+        argsList.add(topics);
 
         argsList.add("--spiegel.props");
         argsList.add("props/spiegel.properties");
