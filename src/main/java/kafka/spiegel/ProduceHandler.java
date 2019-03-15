@@ -100,9 +100,10 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     this.producer.flush();
 
                     // commit offsets.
-                    this.consumer.pause(this.consumer.assignment());
-                    this.consumer.commitSync(this.partitionOffsetMap);
-                    this.consumer.resume(this.consumer.assignment());
+                    synchronized (this.consumer) {
+                        this.consumer.commitSync(this.partitionOffsetMap);
+                        log.info("messages [{}] flushed to destination kafka and offset commited to source kafka...", this.events.size());
+                    }
 
                     // reset events list.
                     this.events = new ArrayList<>();
@@ -112,8 +113,6 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
 
                     // reset message count.
                     this.count.set(0);
-
-                    //log.info("messages flushed to destination kafka and offset commited to source kafka...");
                 }
 
             }catch (Exception e)
