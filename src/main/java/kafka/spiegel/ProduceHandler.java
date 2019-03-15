@@ -100,7 +100,9 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     this.producer.flush();
 
                     // commit offsets.
-                    this.consumer.commitSync(this.partitionOffsetMap);
+                    synchronized (this.consumer) {
+                        this.consumer.commitSync(this.partitionOffsetMap);
+                    }
 
                     // reset events list.
                     this.events = new ArrayList<>();
