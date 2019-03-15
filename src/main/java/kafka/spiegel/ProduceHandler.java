@@ -102,7 +102,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     // commit offsets.
                     synchronized (this.consumer) {
                         this.consumer.commitSync(this.partitionOffsetMap);
-                        log.info("messages [{}] flushed to destination kafka and offset commited to source kafka...", this.events.size());
+                        log.info("messages [{}] flushed to destination kafka and offset [{}] commited to source kafka...", this.events.size(), this.partitionOffsetMap.toString());
                     }
 
                     // reset events list.
