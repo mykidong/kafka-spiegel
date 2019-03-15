@@ -88,7 +88,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
 
     @Override
     public void flushAndCommit() {
-        synchronized (this.consumer) {
+        synchronized (lock) {
             try {
                 if(this.count.get() > 0) {
                     // send messages.
@@ -100,7 +100,9 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     this.producer.flush();
 
                     // commit offsets.
+                    this.consumer.pause(this.consumer.assignment());
                     this.consumer.commitSync(this.partitionOffsetMap);
+                    this.consumer.resume(this.consumer.assignment());
 
                     // reset events list.
                     this.events = new ArrayList<>();
