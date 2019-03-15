@@ -3,14 +3,16 @@ package kafka.spiegel;
 import com.lmax.disruptor.EventHandler;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -53,10 +55,8 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
 
     @Override
     public void onEvent(SpiegelEvent spiegelEvent, long l, boolean b) throws Exception {
-        try
+        synchronized (lock)
         {
-            lock.lock();
-
             String topic = spiegelEvent.getTopic();
             int partition = spiegelEvent.getPartition();
             long offset = spiegelEvent.getOffset();
@@ -83,16 +83,12 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
             if (currentTotalCount >= this.maxEventSize) {
                 this.flushAndCommit();
             }
-        } finally {
-            lock.unlock();
         }
     }
 
     @Override
     public void flushAndCommit() {
-        try {
-            lock.lock();
-
+        synchronized (lock) {
             try {
                 if(this.count.get() > 0) {
                     // send messages.
@@ -104,15 +100,7 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
                     this.producer.flush();
 
                     // commit offsets.
-                    this.consumer.commitAsync(this.partitionOffsetMap, new OffsetCommitCallback() {
-                        @Override
-                        public void onComplete(Map<TopicPartition, OffsetAndMetadata> map, Exception e) {
-                            if(e != null)
-                            {
-                                log.error(e.getMessage());
-                            }
-                        }
-                    });
+                    this.consumer.commitSync(this.partitionOffsetMap);
 
                     // reset events list.
                     this.events = new ArrayList<>();
@@ -130,8 +118,6 @@ public class ProduceHandler implements EventHandler<SpiegelEvent>, ProduceContro
             {
                 throw new RuntimeException(e);
             }
-        } finally {
-            lock.unlock();
         }
     }
 
