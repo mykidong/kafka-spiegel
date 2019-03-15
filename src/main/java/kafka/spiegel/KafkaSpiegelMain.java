@@ -5,6 +5,7 @@ import joptsimple.OptionSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 
@@ -57,23 +58,31 @@ public class KafkaSpiegelMain {
     }
 
 
-    private static Properties loadProperties(String propPath) throws Exception
+    private static Properties loadProperties(String propPath)
     {
         if(!propPath.startsWith("/"))
         {
             propPath = "/" + propPath;
         }
 
+        Properties prop = new Properties();
         InputStream is = null;
         try {
-            Properties prop = new Properties();
+            // load properties file from classpath.
             is = new KafkaSpiegelMain().getClass().getResourceAsStream(propPath);
             prop.load(is);
-
-            return prop;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // if properties file in classpath does not exist, then load it from file path.
+            try {
+                is = new FileInputStream(propPath);
+                prop.load(is);
+            }catch (Exception ex)
+            {
+                throw new RuntimeException(ex);
+            }
         }
+
+        return prop;
     }
 
 

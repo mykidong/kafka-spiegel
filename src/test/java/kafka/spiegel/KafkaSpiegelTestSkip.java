@@ -31,20 +31,23 @@ public class KafkaSpiegelTestSkip {
     @Test
     public void run() throws Exception
     {
+        String consumerProp = System.getProperty("consumerProp", "props/sourceConsumer.properties");
+        String producerProp = System.getProperty("producerProp", "props/destProducer.properties");
+        String spiegelProp = System.getProperty("spiegelProp", "props/spiegel.properties");
         String topics = System.getProperty("topics", "item-view-event");
 
         List<String> argsList = new ArrayList<>();
         argsList.add("--consumer.props");
-        argsList.add("props/sourceConsumer.properties");
+        argsList.add(consumerProp);
 
         argsList.add("--producer.props");
-        argsList.add("props/destProducer.properties");
+        argsList.add(producerProp);
 
         argsList.add("--topics");
         argsList.add(topics);
 
         argsList.add("--spiegel.props");
-        argsList.add("props/spiegel.properties");
+        argsList.add(spiegelProp);
 
         String[] args = argsList.toArray(new String[0]);
 
