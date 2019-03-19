@@ -63,7 +63,11 @@ mvn -e -Dtest=RunLocalKafka -DbrokerPath=kafkaPropLocal2.properties -DzkPath=zkP
 ## Run kafka spiegel.
 Run kafka spiegel which runs kafka consumer connected to source kafka cluster and kafka producer connected to destination kafka cluster:
 ```
-mvn -e -Dtest=KafkaSpiegelTestSkip -DconsumerProp=props/sourceConsumer.properties -DproducerProp=props/destProducer.properties -DspiegelProp=props/spiegel.properties -Dtopics=events test;
+mvn -e -Dtest=KafkaSpiegelTestSkip \
+        -DconsumerProp=props/sourceConsumer.properties \                          
+        -DproducerProp=props/destProducer.properties \       
+        -DspiegelProp=props/spiegel.properties \
+        -Dtopics=events test;
 ```
 
 ## Run test producer to send message to source kafka broker.
