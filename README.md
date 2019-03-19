@@ -67,7 +67,7 @@ mvn -e -Dtest=KafkaSpiegelTestSkip \
         -DconsumerProp=props/sourceConsumer.properties \                          
         -DproducerProp=props/destProducer.properties \       
         -DspiegelProp=props/spiegel.properties \
-        -Dtopics=events test;
+        -Dtopics=item-view-event test;
 ```
 
 ## Run test producer to send message to source kafka broker.
